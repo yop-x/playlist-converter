@@ -1,39 +1,46 @@
-import requests 
 from bs4 import BeautifulSoup
-from NetEaseMusicApi import api
-from urllib.parse import urlparse, parse_qs
+import requests 
 
 
+# Using beautiful soup to extract the web elements 
+# Need to log in
 
-url = './saved_resource.html'
+url = 'https://music.163.com/#/playlist?id=2313062981'
 
-with open("./saved_resource.html") as fp:
-    soup = BeautifulSoup(fp, 'html.parser')
-
-titles = soup.find_all('span', {'class': 'txt'})
-
-title_list = []
-for title in titles:
-    title_list.append(title.text)
-
-ids = []
-for title in titles:
-    url = title.find('a').get('href')
-    parsed_url = urlparse(url)
-    query_string = parsed_url.query
-    query_params = parse_qs(query_string)
-    id_value = query_params['id'][0]
-    ids.append(id_value)
-
-url  = 'https://music.163.com/api/song/detail/?id=26547431&ids=[26547431]'
 response = requests.get(url)
-song_data = response.json()
-print(song_data)
+soup = BeautifulSoup(response.text, 'html.parser')
 
 
-# for id in ids:
-#     api_url = f"https://music.163.com/api/song/detail/?id={id}&ids=[{id}]"
-#     response = requests.get(api_url)
-#     song_data = response.json()['songs'][0]
-#     song_name = song_data['name']
-#     print(song_name)
+
+# Returned some element but the playlist is hidden under 'iframe' 
+# Download the 'view frame source' html file to try out 
+# Getting the class_ name that contains all the songs ids
+
+song_ids = []
+
+path = './view-source_https___music.163.com_playlist_id=2313062981.html'
+
+with open(path) as fp:
+    soup2 = BeautifulSoup(fp, 'html.parser')
+    
+songs = soup2.find_all(class_='html-attribute-value html-external-link')
+for song in songs:
+    if '/song?id' in song.text:
+        song_ids.append(song.text[9:])
+    
+print(song_ids)
+print(len(song_ids))
+
+#api 
+
+from NetEaseMusicApi import api
+song_names = []
+
+
+print(api.song.detail(song_ids[0]))
+
+for id in song_ids:
+    song_names.append(api.song.detail(id)[0]['name'])
+    
+print(song_names)
+    
