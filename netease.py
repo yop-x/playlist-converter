@@ -31,16 +31,11 @@ for song in songs:
 print(song_ids)
 print(len(song_ids))
 
-#api 
+api_url = 'https://music.163.com/api/song/detail/?id=26547431&ids=[26547431]' 
 
-from NetEaseMusicApi import api
+new_response = requests.get(api_url)
+
 song_names = []
-
-
-print(api.song.detail(song_ids[0]))
-
 for id in song_ids:
-    song_names.append(api.song.detail(id)[0]['name'])
-    
-print(song_names)
-    
+    api_url = f'https://music.163.com/api/song/detail/?id={id}&ids=[{id}]'
+    print(requests.get(api_url).json()['songs'][0]['name'])
